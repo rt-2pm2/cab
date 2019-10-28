@@ -3,6 +3,7 @@
  * @author Luigi Pannocchi
  *
  */
+
 #pragma once
 #include <pthread.h>
 #include <opencv2/core/mat.hpp>
@@ -21,12 +22,13 @@ class DataStorage {
 	public:
 		// Constructor
 		DataStorage(Record* p);	
+		virtual ~DataStorage();
 
-		// Load
-		virtual void load();
+		// Load (to be defined in the Child)
+		virtual void loadData(void *) = 0;
 
-		// GetData
-		virtual void getData();
+		// GetData (to be defined in the Child)
+		virtual void* getData() = 0;
 		
 		// Get pointer to Parent Record
 		Record* getParent();
@@ -37,52 +39,42 @@ class DataStorage {
 /**
  * Data structure for stereo camera image pair
  * 
- * camId       : integer ID # (Front Left Pair=0, Front Right Pair=1, Bottom Pair=2 ) 
+ * camId       : int ID # (Front Left Pair=0, Front Right Pair=1, Bottom Pair=2 ) 
  * leftImage   : cv::Mat file containing left image from stereo camera pair
  * rightImage  : cv::Mat file containing right image from stereo camera pair
  * timestamp   : timestamp of the image reading
- * mx          : mutex for access the structure
  *
  */
 struct imgDataStr{
-	// ONLY IMAGE CLASS
-	//Contains stereo pair
-	//Different class for each camera
 	int camId;
 	cv::Mat leftImage;
 	cv::Mat rightImage;
 
-	// Used to get timestamp in timespec format
-	// Now it's in long ints of microseconds (or nanoseconds on the sim)
 	uint64_t timestamp;
-    std::mutex mx;    
 };
+
 
 /** 
  * Class wrapper for image data
  */
-class imgHandler : DataStorage {
+class ImgStorage : public DataStorage {
 private: 
 	imgDataStr imgData;
 
 public:
-    imgHandler(int idNum, Record* pR);
-    ~imgHandler();
+    ImgStorage(Record* pR, int idNum);
+    ~ImgStorage();
 
     /**
-    * Update the image data to the class with uint64_t timestamps
-    */
-    void updateImgPair(
-			cv::Mat& newImgLeft, 
-			cv::Mat& newImgRight, 
-			uint64_t newTime);
+    * Load the data into the Storage copying the content.
+	* 
+	*/
+    void loadData(void *);
 
     /**
-     * Get the image data, return to calling function
+     * Get the reference to the image data.
      */
-    void getImgPair(cv::Mat& imgLeft,
-			cv::Mat& imgRight,
-			uint64_t& storedTime);
+    void* getData();
 
     /**
      * Get cam ID

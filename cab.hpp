@@ -21,17 +21,17 @@ struct Record {
 	int readers;
 
 	// Constructor
-	Record(int nrow, int ncol, int type):
+	Record(int id):
 		readers(0), 
 		next(NULL) {
-			pData = new DataStorage(this, nrow, ncol, type); 
+			pData = new ImgStorage(this, id); 
 		};
 };
 
 
 class CAB {
 	public:
-		CAB(int n);
+		CAB(int num, int id);
 		Record* free_;
 		Record* mrr_;
 
@@ -45,7 +45,7 @@ class CAB {
 		DataStorage* reserveRecordRD();
 		void releaseRecordRW(DataStorage* bdp);
 
-		void insertData(cv::Mat data);
+		void insertData(imgDataStr d);
 
 
 	private:

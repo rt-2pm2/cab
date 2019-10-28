@@ -1,18 +1,18 @@
 #include "cab.hpp"
 
-CAB::CAB(int nRecords) {
+CAB::CAB(int nRecords, int id) {
 	// Initialize mutex
 	pthread_mutex_init(&cab_mx_, NULL);
 	active_writer_ = false;
 	mrr_ = NULL;
 
 	// Create the list of Records
-	Record* currentRec = new Record(10, 10, CV_8U);
+	Record* currentRec = new Record(id);
 	for (int i = 0; i < nRecords; i++) {
 		if (i == 0) 
 			free_ = currentRec;
 		else {
-			currentRec->next = new Record(10, 10, CV_8U);
+			currentRec->next = new Record(id);
 			currentRec = currentRec->next;
 		}
 	}
@@ -44,7 +44,7 @@ DataStorage* CAB::reserveRecordWR() {
 }
 
 
-void CAB::insertData(cv::Mat data) {	
+void CAB::insertData(imgDataStr data) {	
 	pthread_mutex_lock(&cab_mx_);
 	active_writer_ = true;	
 	// Take a pointer to the free space, 
@@ -56,7 +56,7 @@ void CAB::insertData(cv::Mat data) {
 	pthread_mutex_unlock(&cab_mx_);
 
 	// Load the data in memory.
-	pR->pData->load(data);
+	pR->pData->loadData((void*) &data);
 
 	// Update the MRR
 	pthread_mutex_lock(&cab_mx_);
