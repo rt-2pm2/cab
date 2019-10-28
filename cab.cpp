@@ -3,16 +3,16 @@
 CAB::CAB(int nRecords) {
 	// Initialize mutex
 	pthread_mutex_init(&cab_mx_, NULL);
-
 	active_writer_ = false;
+	mrr_ = NULL;
 
 	// Create the list of Records
-	Record* currentRec = new Record(10, 10, CV_8UC1);
+	Record* currentRec = new Record(10, 10, CV_8U);
 	for (int i = 0; i < nRecords; i++) {
 		if (i == 0) 
 			free_ = currentRec;
 		else {
-			currentRec->next = new Record(10, 10, CV_8UC1);
+			currentRec->next = new Record(10, 10, CV_8U);
 			currentRec = currentRec->next;
 		}
 	}
@@ -61,8 +61,9 @@ void CAB::insertData(cv::Mat data) {
 	// Update the MRR
 	pthread_mutex_lock(&cab_mx_);
 	active_writer_ = false;
+
 	// If the MRR is not used, recycle it. 
-	if (mrr_->readers == 0) {
+	if (mrr_ != NULL && mrr_->readers == 0) {
 		mrr_->next = free_;
 		free_ = mrr_;
 	}
